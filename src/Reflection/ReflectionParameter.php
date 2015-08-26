@@ -191,7 +191,7 @@ class ReflectionParameter implements \Reflector
      */
     public function isOptional()
     {
-        return (bool)$this->node->isOptional;
+        return ((bool)$this->node->isOptional) || $this->isVariadic();
     }
 
     /**
