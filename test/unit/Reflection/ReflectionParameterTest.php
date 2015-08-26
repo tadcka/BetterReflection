@@ -372,7 +372,7 @@ class ReflectionParameterTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @group 107
+     * @group 109
      */
     public function testVariadicParametersAreAlsoImplicitlyOptional()
     {
