@@ -86,7 +86,7 @@ class ReflectionParameter implements \Reflector
             $this->isVariadic() ? '...' : '',
             $this->isPassedByReference() ? '&' : '',
             $this->getName(),
-            $this->isOptional()
+            ($this->isOptional() && $this->isDefaultValueAvailable())
                 ? (' = ' . $this->getDefaultValueAsString())
                 : ''
         );
