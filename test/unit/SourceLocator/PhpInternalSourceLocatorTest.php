@@ -5,6 +5,8 @@ namespace BetterReflectionTest\SourceLocator;
 use BetterReflection\Identifier\Identifier;
 use BetterReflection\Identifier\IdentifierType;
 use BetterReflection\Reflection\ReflectionClass;
+use BetterReflection\Reflection\ReflectionMethod;
+use BetterReflection\Reflection\ReflectionParameter;
 use BetterReflection\Reflector\ClassReflector;
 use BetterReflection\SourceLocator\InternalLocatedSource;
 use BetterReflection\SourceLocator\PhpInternalSourceLocator;
@@ -124,5 +126,142 @@ class PhpInternalSourceLocatorTest extends \PHPUnit_Framework_TestCase
                 )
             )
         );
+    }
+
+    /**
+     * @dataProvider stubbedClassesProvider
+     *
+     * @param string $className
+     */
+    public function testAllGeneratedStubsAreInSyncWithInternalReflectionClasses($className)
+    {
+        if (! (
+            class_exists($className, false)
+            || interface_exists($className, false)
+            || trait_exists($className, false)
+        )) {
+            $this->markTestSkipped(sprintf('Class "%s" is not available in this environment', $className));
+        }
+
+        $reflector = new ClassReflector(new PhpInternalSourceLocator());
+
+        $this->assertSameClassAttributes(new \ReflectionClass($className), $reflector->reflect($className));
+    }
+
+    /**
+     * @return string[][]
+     */
+    public function stubbedClassesProvider()
+    {
+        $classNames = array_filter(
+            str_replace('.stub', '', scandir(__DIR__ . '/../../../stub')),
+            function ($fileName) {
+                return trim($fileName, '.');
+            }
+        );
+
+        return array_combine(
+            $classNames,
+            array_map(
+                function ($fileName) {
+                    return [$fileName];
+                },
+                $classNames
+            )
+        );
+    }
+
+    private function assertSameClassAttributes(\ReflectionClass $original, ReflectionClass $stubbed)
+    {
+        $this->assertSame($original->getName(), $stubbed->getName());
+
+        $internalParent     = $original->getParentClass();
+        $betterParent       = $stubbed->getParentClass();
+        $internalParentName = $internalParent ? $internalParent->getName() : null;
+        $betterParentName   = $betterParent ? $betterParent->getName() : null;
+
+        $this->assertSame($internalParentName, $betterParentName);
+
+        // @TODO to be removed once #107 is merged
+        $originalMethods = array_filter(
+            $original->getMethods(),
+            function (\ReflectionMethod $method) use ($original) {
+                return $method->getDeclaringClass()->getName() === $original->getName();
+            }
+        );
+
+        $originalMethodNames = array_map(
+            function (\ReflectionMethod $method) {
+                return $method->getName();
+            },
+            $originalMethods
+        );
+
+        $stubbedMethodNames = array_map(
+            function (ReflectionMethod $method) {
+                return $method->getName();
+            },
+            $stubbed->getMethods() // @TODO see #107
+        );
+
+        sort($originalMethodNames);
+        sort($stubbedMethodNames);
+
+        $this->assertSame($originalMethodNames, $stubbedMethodNames);
+        $this->assertEquals($original->getConstants(), $stubbed->getConstants());
+
+        foreach ($originalMethods as $method) {
+            $this->assertSameMethodAttributes($method, $stubbed->getMethod($method->getName()));
+        }
+    }
+
+    private function assertSameMethodAttributes(\ReflectionMethod $original, ReflectionMethod $stubbed)
+    {
+        $this->assertSame(
+            array_map(
+                function (\ReflectionParameter $parameter) {
+                    return $parameter->getDeclaringFunction()->getName() . '.' . $parameter->getName();
+                },
+                $original->getParameters()
+            ),
+            array_map(
+                function (ReflectionParameter $parameter) {
+                    return $parameter->getDeclaringFunction()->getName() . '.' . $parameter->getName();
+                },
+                $stubbed->getParameters()
+            )
+        );
+
+        foreach ($original->getParameters() as $parameter) {
+            $this->assertSameParameterAttributes($parameter, $stubbed->getParameter($parameter->getName()));
+        }
+
+        $this->assertSame($original->isPublic(), $stubbed->isPublic());
+        $this->assertSame($original->isPrivate(), $stubbed->isPrivate());
+        $this->assertSame($original->isProtected(), $stubbed->isProtected());
+        $this->assertSame($original->returnsReference(), $stubbed->returnsReference());
+        $this->assertSame($original->isStatic(), $stubbed->isStatic());
+        $this->assertSame($original->isFinal(), $stubbed->isFinal());
+    }
+
+    private function assertSameParameterAttributes(\ReflectionParameter $original, ReflectionParameter $stubbed)
+    {
+        $this->assertSame($original->getName(), $stubbed->getName());
+        $this->assertSame($original->isArray(), $stubbed->isArray());
+        $this->assertSame($original->isCallable(), $stubbed->isCallable());
+        //$this->assertSame($original->allowsNull(), $stubbed->allowsNull()); @TODO WTF?
+        $this->assertSame($original->canBePassedByValue(), $stubbed->canBePassedByValue());
+        $this->assertSame($original->isOptional(), $stubbed->isOptional());
+        $this->assertSame($original->isPassedByReference(), $stubbed->isPassedByReference());
+        $this->assertSame($original->isVariadic(), $stubbed->isVariadic());
+
+        if ($class = $original->getClass()) {
+            $stubbedClass = $stubbed->getClass();
+
+            $this->assertInstanceOf(ReflectionClass::class, $stubbedClass);
+            $this->assertSame($class->getName(), $stubbedClass->getName());
+        } else {
+            $this->assertNull($stubbed->getClass());
+        }
     }
 }

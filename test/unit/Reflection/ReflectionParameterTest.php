@@ -370,4 +370,22 @@ class ReflectionParameterTest extends \PHPUnit_Framework_TestCase
         $this->assertInstanceOf(ReflectionClass::class, $hintedClassReflection);
         $this->assertSame('stdClass', $hintedClassReflection->getName());
     }
+
+    /**
+     * @group 109
+     */
+    public function testVariadicParametersAreAlsoImplicitlyOptional()
+    {
+        $classInfo = $this->reflector->reflect('\BetterReflectionTest\Fixture\Methods');
+
+        $method = $classInfo->getMethod('methodWithVariadic');
+
+        $nonVariadicParam = $method->getParameter('nonVariadicParameter');
+        $this->assertFalse($nonVariadicParam->isVariadic());
+        $this->assertFalse($nonVariadicParam->isOptional());
+
+        $variadicParam = $method->getParameter('variadicParameter');
+        $this->assertTrue($variadicParam->isVariadic());
+        $this->assertTrue($variadicParam->isOptional());
+    }
 }
