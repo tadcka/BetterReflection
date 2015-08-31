@@ -40,7 +40,9 @@ class EvaledCodeSourceLocator implements SourceLocator
         }
 
         $reflection = new \ReflectionClass($name);
+        $sourceFile = $reflection->getFileName();
 
-        return $reflection->getFileName() ? $reflection->getName() : null;
+        return ($sourceFile && file_exists($sourceFile))
+            ? null : $reflection->getName();
     }
 }
