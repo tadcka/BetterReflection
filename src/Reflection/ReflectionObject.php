@@ -487,4 +487,20 @@ class ReflectionObject extends ReflectionClass
     {
         return $this->reflectionClass->isIterateable();
     }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function setStaticPropertyValue($propertyName, $value)
+    {
+        $this->reflectionClass->setStaticPropertyValue($propertyName, $value);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getStaticPropertyValue($propertyName)
+    {
+        return $this->reflectionClass->getStaticPropertyValue($propertyName);
+    }
 }
