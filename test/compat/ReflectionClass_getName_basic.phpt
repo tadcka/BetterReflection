@@ -4,7 +4,7 @@ ReflectionClass::getName()
 <?php
 require 'vendor/autoload.php';
 use BetterReflection\Reflector\ClassReflector;
-use BetterReflection\SourceLocator\SingleFileSourceLocator;
+use BetterReflection\SourceLocator\Type\SingleFileSourceLocator;
 $reflector = new ClassReflector(new SingleFileSourceLocator(__FILE__));
 
 class TrickClass {
