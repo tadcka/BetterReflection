@@ -398,4 +398,14 @@ abstract class ReflectionFunctionAbstract implements \Reflector
     {
         return  (new FindReturnType())->__invoke($this);
     }
+
+    /**
+     * Retrieves the body of this function as AST nodes
+     *
+     * @return array
+     */
+    public function getBodyAst()
+    {
+        return $this->node->stmts;
+    }
 }

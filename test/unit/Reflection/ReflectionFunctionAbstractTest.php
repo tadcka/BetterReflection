@@ -11,6 +11,7 @@ use BetterReflection\SourceLocator\SingleFileSourceLocator;
 use BetterReflection\SourceLocator\StringSourceLocator;
 use phpDocumentor\Reflection\Types\Boolean;
 use PhpParser\Node\Stmt\Break_;
+use PhpParser\Node\Stmt\Echo_;
 use PhpParser\Node\Stmt\Function_;
 
 /**
@@ -317,5 +318,23 @@ class ReflectionFunctionAbstractTest extends \PHPUnit_Framework_TestCase
         $this->assertInternalType('array', $types);
         $this->assertCount(1, $types);
         $this->assertInstanceOf(Boolean::class, $types[0]);
+    }
+
+    public function testGetBodyAst()
+    {
+        $php = '<?php
+            function foo() {
+                echo "Hello world";
+            }
+        ';
+
+        $reflector = new FunctionReflector(new StringSourceLocator($php));
+        $function = $reflector->reflect('foo');
+
+        $ast = $function->getBodyAst();
+
+        $this->assertInternalType('array', $ast);
+        $this->assertCount(1, $ast);
+        $this->assertInstanceOf(Echo_::class, $ast[0]);
     }
 }
