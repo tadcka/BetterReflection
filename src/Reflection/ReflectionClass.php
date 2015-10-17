@@ -1032,4 +1032,14 @@ class ReflectionClass implements Reflection, \Reflector
             )
         );
     }
+
+    /**
+     * Retrieve the AST node for this class
+     *
+     * @return ClassNode|InterfaceNode|TraitNode|ClassLikeNode
+     */
+    public function getAst()
+    {
+        return $this->node;
+    }
 }

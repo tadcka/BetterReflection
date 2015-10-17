@@ -908,4 +908,18 @@ class ReflectionClassTest extends \PHPUnit_Framework_TestCase
 
         $this->assertStringStartsWith('Class [ <user> class Qux\Baz extends Qux\Bat implements Qux\Foo, Qux\Bar ] {', $reflection->__toString());
     }
+
+    public function testGetAst()
+    {
+        $php = '<?php
+            class Foo {}
+        ';
+
+        $reflection = (new ClassReflector(new StringSourceLocator($php)))->reflect('Foo');
+
+        $ast = $reflection->getAst();
+
+        $this->assertInstanceOf(Class_::class, $ast);
+        $this->assertSame('Foo', $ast->name);
+    }
 }
