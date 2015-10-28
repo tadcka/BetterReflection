@@ -7,7 +7,8 @@
         "nikic/php-parser": "dev-master",
         "phpdocumentor/reflection-docblock": "^2.0",
         "phpdocumentor/type-resolver": "dev-master",
-        "zendframework/zend-code": "^2.5@dev"
+        "zendframework/zend-code": "^2.5@dev",
+        "jeremeamia/superclosure": "dev-php-parser"
     },
     "require-dev": {
         "fabpot/php-cs-fixer": "^1.8",
